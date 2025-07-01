@@ -1,20 +1,17 @@
 import React from "react";
 
-const StartScreen = ({ username, setUsername, startQuiz }) => {
+const ScoreBoard = ({ score, total, restart }) => {
   return (
-    <div className="start-screen">
-      <h1>🎯 Ultimate Quiz Challenge</h1>
-      <input
-        type="text"
-        placeholder="Enter your name"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <button className="start-btn" onClick={startQuiz}>
-        Start Quiz
+    <div className="score-board">
+      <h2>Quiz Completed!</h2>
+      <p>
+        Your Score: {score} / {total}
+      </p>
+      <button className="start-btn" onClick={restart}>
+        Restart Quiz
       </button>
     </div>
   );
 };
 
-export default StartScreen;
+export default ScoreBoard;

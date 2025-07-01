@@ -16,6 +16,7 @@ const App = () => {
   const [quizStarted, setQuizStarted] = useState(false);
   const [hasAnswered, setHasAnswered] = useState(false);
   const [username, setUsername] = useState("");
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   // Shuffle and set questions
   const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5);
@@ -48,9 +49,7 @@ const App = () => {
     if (showScore && username.trim()) {
       const pastScores = JSON.parse(localStorage.getItem("quizScores")) || [];
       const newEntry = { name: username.trim(), score };
-      const updatedScores = [newEntry, ...pastScores]
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 5);
+      const updatedScores = [newEntry, ...pastScores].slice(0, 5);
       localStorage.setItem("quizScores", JSON.stringify(updatedScores));
     }
   }, [showScore]);
@@ -93,21 +92,21 @@ const App = () => {
 
   return (
     <div className="app">
-      {!quizStarted ? (
+      {!quizStarted && !showLeaderboard ? (
         <StartScreen
           username={username}
           setUsername={setUsername}
           startQuiz={startQuiz}
+          onViewLeaderboard={() => setShowLeaderboard(true)}
         />
+      ) : showLeaderboard ? (
+        <Leaderboard onClose={() => setShowLeaderboard(false)} />
       ) : showScore ? (
-        <>
-          <ScoreBoard
-            score={score}
-            total={shuffledQuestions.length}
-            restart={restartQuiz}
-          />
-          <Leaderboard />
-        </>
+        <ScoreBoard
+          score={score}
+          total={shuffledQuestions.length}
+          restart={restartQuiz}
+        />
       ) : shuffledQuestions.length > 0 ? (
         <>
           <div className="top-bar">
