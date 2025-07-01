@@ -3,6 +3,8 @@ import questions from "./data";
 import QuestionCard from "./Components/QuestionCard";
 import ScoreBoard from "./Components/ScoreBoard";
 import ProgressBar from "./Components/ProgressBar";
+import StartScreen from "./Components/StartScreen";
+import Leaderboard from "./Components/Leaderboard";
 import "./App.css";
 
 const App = () => {
@@ -13,7 +15,9 @@ const App = () => {
   const [timeLeft, setTimeLeft] = useState(15);
   const [quizStarted, setQuizStarted] = useState(false);
   const [hasAnswered, setHasAnswered] = useState(false);
+  const [username, setUsername] = useState("");
 
+  // Shuffle and set questions
   const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5);
 
   useEffect(() => {
@@ -21,6 +25,7 @@ const App = () => {
     setShuffledQuestions(randomized);
   }, []);
 
+  // Timer countdown
   useEffect(() => {
     if (!quizStarted || showScore || timeLeft <= 0 || hasAnswered) return;
 
@@ -31,21 +36,26 @@ const App = () => {
     return () => clearInterval(timer);
   }, [timeLeft, showScore, quizStarted, hasAnswered]);
 
+  // Timer runs out and question not answered
   useEffect(() => {
     if (timeLeft === 0 && !hasAnswered) {
-      handleAnswer(false);
+      handleAnswer(false, true); // Fail question
     }
   }, [timeLeft]);
 
+  // Save score to localStorage
   useEffect(() => {
-    if (showScore) {
+    if (showScore && username.trim()) {
       const pastScores = JSON.parse(localStorage.getItem("quizScores")) || [];
-      const newScores = [...pastScores, score];
-      localStorage.setItem("quizScores", JSON.stringify(newScores));
+      const newEntry = { name: username.trim(), score };
+      const updatedScores = [newEntry, ...pastScores]
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+      localStorage.setItem("quizScores", JSON.stringify(updatedScores));
     }
   }, [showScore]);
 
-  const handleAnswer = (isCorrect) => {
+  const handleAnswer = (isCorrect, skipped = false) => {
     setHasAnswered(true);
     if (isCorrect) setScore((prev) => prev + 1);
   };
@@ -69,9 +79,14 @@ const App = () => {
     setTimeLeft(15);
     setQuizStarted(false);
     setHasAnswered(false);
+    setUsername("");
   };
 
   const startQuiz = () => {
+    if (!username.trim()) {
+      alert("Please enter your name to start.");
+      return;
+    }
     setQuizStarted(true);
     setTimeLeft(15);
   };
@@ -79,18 +94,20 @@ const App = () => {
   return (
     <div className="app">
       {!quizStarted ? (
-        <div className="start-screen">
-          <h1>🎯 Ultimate Quiz Challenge</h1>
-          <button className="start-btn" onClick={startQuiz}>
-            Start Quiz
-          </button>
-        </div>
-      ) : showScore ? (
-        <ScoreBoard
-          score={score}
-          total={shuffledQuestions.length}
-          restart={restartQuiz}
+        <StartScreen
+          username={username}
+          setUsername={setUsername}
+          startQuiz={startQuiz}
         />
+      ) : showScore ? (
+        <>
+          <ScoreBoard
+            score={score}
+            total={shuffledQuestions.length}
+            restart={restartQuiz}
+          />
+          <Leaderboard />
+        </>
       ) : shuffledQuestions.length > 0 ? (
         <>
           <div className="top-bar">
